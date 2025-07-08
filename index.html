@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Income Expense Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .balance {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .balance h3 {
+      margin: 5px 0;
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .summary div {
+      width: 48%;
+      padding: 10px;
+      background: #eaeaea;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .income {
+      color: green;
+    }
+
+    .expense {
+      color: red;
+    }
+
+    form input, form select, form button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .entry {
+      background: #f9f9f9;
+      padding: 10px;
+      border-left: 5px solid;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 6px;
+    }
+
+    .entry.income {
+      border-color: green;
+    }
+
+    .entry.expense {
+      border-color: red;
+    }
+
+    .entry .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .entry button {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .entry button.edit {
+      color: #007bff;
+    }
+
+    .entry button.delete {
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Income Expense Calculator</h2>
+    <div class="balance">
+      <h3>Available Balance: ₹<span id="balance">0</span></h3>
+    </div>
+    <div class="summary">
+      <div>
+        <h4>Income</h4>
+        <p class="income">₹<span id="total-income">0</span></p>
+      </div>
+      <div>
+        <h4>Expense</h4>
+        <p class="expense">₹<span id="total-expense">0</span></p>
+      </div>
+    </div>
+
+    <form id="entry-form">
+      <input type="text" id="description" placeholder="Description" required />
+      <input type="number" id="amount" placeholder="Amount" required />
+      <select id="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+      <button type="submit">Add Entry</button>
+    </form>
+
+    <ul id="entries-list"></ul>
+  </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>
