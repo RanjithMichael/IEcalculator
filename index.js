@@ -2,111 +2,88 @@ const form = document.getElementById('entry-form');
 const descriptionInput = document.getElementById('description');
 const amountInput = document.getElementById('amount');
 const typeInput = document.getElementById('type');
+const entriesList = document.getElementById('entries-list');
 const balanceEl = document.getElementById('balance');
 const totalIncomeEl = document.getElementById('total-income');
 const totalExpenseEl = document.getElementById('total-expense');
-const entriesList = document.getElementById('entries-list');
+const resetBtn = document.getElementById('reset-btn');
+const filters = document.querySelectorAll('input[name="filter"]');
 
-let entries = [];
-let editId = null;
+let entries = JSON.parse(localStorage.getItem('entries')) || [];
+let currentFilter = 'all';
 
-
-function formatCurrency(num) {
-  return num.toLocaleString('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2
-  });
+function updateSummary() {
+  const income = entries.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0);
+  const expense = entries.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
+  balanceEl.textContent = (income - expense).toFixed(2);
+  totalIncomeEl.textContent = income.toFixed(2);
+  totalExpenseEl.textContent = expense.toFixed(2);
 }
-
-
-form.addEventListener('submit', function (e) {
-  e.preventDefault();
-
-  const desc = descriptionInput.value.trim();
-  const amount = parseFloat(amountInput.value);
-  const type = typeInput.value;
-
-  if (!desc || isNaN(amount) || amount <= 0) return;
-
-  const entry = {
-    id: editId !== null ? editId : Date.now(),
-    description: desc,
-    amount,
-    type
-  };
-
-  if (editId !== null) {
-    entries = entries.map(item => item.id === editId ? entry : item);
-    editId = null;
-    form.querySelector('button[type="submit"]').textContent = 'Add Entry';
-    const cancelBtn = document.getElementById('cancel-edit');
-    if (cancelBtn) cancelBtn.remove();
-  } else {
-    entries.push(entry);
-  }
-
-  form.reset();
-  renderEntries();
-});
-
 
 function renderEntries() {
   entriesList.innerHTML = '';
-  let income = 0, expense = 0;
 
-  entries.forEach(entry => {
+  const filtered = entries.filter(entry => {
+    if (currentFilter === 'all') return true;
+    return entry.type === currentFilter;
+  });
+
+  filtered.forEach((entry, index) => {
     const li = document.createElement('li');
-    li.className = `entry ${entry.type}`;
+    li.classList.add('entry', entry.type);
     li.innerHTML = `
-      <span>${entry.description}: ${formatCurrency(entry.amount)}</span>
+      <span>${entry.description} - ₹${entry.amount.toFixed(2)}</span>
       <div class="actions">
-        <button class="edit" onclick="editEntry(${entry.id})">✏️</button>
-        <button class="delete" onclick="deleteEntry(${entry.id})">🗑️</button>
+        <button class="edit" onclick="editEntry(${index})">✏️</button>
+        <button class="delete" onclick="deleteEntry(${index})">🗑️</button>
       </div>
     `;
     entriesList.appendChild(li);
-
-    if (entry.type === 'income') income += entry.amount;
-    else expense += entry.amount;
   });
 
-  totalIncomeEl.textContent = formatCurrency(income);
-  totalExpenseEl.textContent = formatCurrency(expense);
-  balanceEl.textContent = formatCurrency(income - expense);
+  updateSummary();
+  localStorage.setItem('entries', JSON.stringify(entries));
 }
 
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const description = descriptionInput.value.trim();
+  const amount = parseFloat(amountInput.value);
+  const type = typeInput.value;
 
-window.editEntry = function (id) {
-  const entry = entries.find(e => e.id === id);
-  if (!entry) return;
+  if (description && !isNaN(amount) && amount > 0) {
+    entries.push({ description, amount, type });
+    renderEntries();
+    form.reset();
+  }
+});
 
+resetBtn.addEventListener('click', () => {
+  form.reset();
+});
+
+function deleteEntry(index) {
+  entries.splice(index, 1);
+  renderEntries();
+}
+
+function editEntry(index) {
+  const entry = entries[index];
   descriptionInput.value = entry.description;
   amountInput.value = entry.amount;
   typeInput.value = entry.type;
-  editId = id;
-
-  form.querySelector('button[type="submit"]').textContent = 'Update Entry';
-
-  
-  if (!document.getElementById('cancel-edit')) {
-    const cancelBtn = document.createElement('button');
-    cancelBtn.id = 'cancel-edit';
-    cancelBtn.type = 'button';
-    cancelBtn.textContent = 'Cancel Edit';
-    cancelBtn.style.marginTop = '10px';
-    cancelBtn.onclick = () => {
-      form.reset();
-      editId = null;
-      cancelBtn.remove();
-      form.querySelector('button[type="submit"]').textContent = 'Add Entry';
-    };
-    form.appendChild(cancelBtn);
-  }
+  deleteEntry(index);
 }
 
+filters.forEach(filter => {
+  filter.addEventListener('change', (e) => {
+    currentFilter = e.target.value;
+    renderEntries();
+  });
+});
 
-window.deleteEntry = function (id) {
-  entries = entries.filter(e => e.id !== id);
-  renderEntries();
-}
+// Initial render
+renderEntries();
+window.deleteEntry = deleteEntry;
+window.editEntry = editEntry;
+
